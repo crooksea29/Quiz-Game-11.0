@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Subject Quiz Game</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f6f8fa;
+            color: #24292e;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .quiz-card {
+            background-color: #ffffff;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            border-bottom: 1px solid #e1e4e8;
+            padding-bottom: 12px;
+        }
+        .question-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            background-color: #fafbfc;
+            border: 1px solid rgba(27, 31, 35, 0.15);
+            border-radius: 6px;
+            color: #24292e;
+            cursor: pointer;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background-color: #f3f4f6;
+            border-color: rgba(27, 31, 35, 0.15);
+        }
+        .btn:active {
+            background-color: #edeff2;
+        }
+        .feedback {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: none;
+        }
+        .correct {
+            background-color: #dcffe4;
+            color: #1a7f37;
+            border: 1px solid #abe9b3;
+        }
+        .incorrect {
+            background-color: #ffebe9;
+            color: #cf222e;
+            border: 1px solid #ffc1c0;
+        }
+        .score-display {
+            font-size: 14px;
+            color: #57606a;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <h1 id="quiz-title">School Subject Quiz</h1>
+    
+    <div id="quiz-body">
+        <p class="question-text" id="question">Welcome to the school subject quiz game!<br>What is your favorite subject?</p>
+        <div class="options-container" id="options">
+            <button class="btn" onclick="selectSubject('a')">a. Mathematics</button>
+            <button class="btn" onclick="selectSubject('b')">b. Science</button>
+            <button class="btn" onclick="selectSubject('c')">c. English</button>
+            <button class="btn" onclick="selectSubject('d')">d. Social Studies</button>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div class="score-display" id="score-box" style="display: none;">Score: <span id="score">0</span></div>
+</div>
+
+<script>
+    let score = 0;
+    let currentQuestionIndex = 0;
+    let activeQuestions = [];
+    let subjectName = "";
+    let geniusTitle = "Genius!";
+
+    const datasets = {
+        a: {
+            name: "mathematics",
+            title: "Math Master!",
+            quiz: [
+                { q: "What is 42 * 3?", options: { a: "134", b: "126", c: "104", d: "138" }, correct: ["b"] },
+                { q: "Solve: 144 - 128 = ", options: { a: "16", b: "12", c: "8", d: "6" }, correct: ["a"] },
+                { q: "Solve for x: 2x + 2 = 12", options: { a: "7", b: "6", c: "2", d: "5" }, correct: ["d"] },
+                { q: "Solve for x: x² - 9 = 0", options: { a: "+- 3", b: "4", c: "3, -3", d: "12" }, correct: ["a", "c"] },
+                { q: "Simplify: 51/34", options: { a: "2/3", b: "4/3", c: "3/2", d: "3/4" }, correct: ["c"] },
+                { q: "Solve for x: x² - 8x + 16 = 0", options: { a: "4", b: "2", c: "8", d: "16" }, correct: ["a"] }
+            ]
+        },
+        b: {
+            name: "science",
+            title: "Genuis!",
+            quiz: [
+                { q: "Who invented the laws of motion?", options: { a: "Albert Einstein", b: "John Locke", c: "Marie Curie", d: "Sir Isaac Newton" }, correct: ["d"] },
+                { q: "Which color absorbs more light?", options: { a: "Blue", b: "Black", c: "White", d: "Gray" }, correct: ["b"] },
+                { q: "What was one of Einstein's ideas?", options: { a: "Theory of relativity", b: "Heliocentric model", c: "The periodic table", d: "Ideal gas law" }, correct: ["a"] },
+                { q: "Which gas law relates pressure and volume?", options: { a: "Gay-Lussac's Law", b: "Charles Law", c: "Boyles Law", d: "Combined Gas Law" }, correct: ["c"] },
+                { q: "Which phase change is exothermic?", options: { a: "Vaporization", b: "Melting", c: "Sublimation", d: "Deposition" }, correct: ["d"] },
+                { q: "What is a protein's monomer?", options: { a: "amino acid", b: "monosaccharide", c: "no true monomer", d: "nucleic acid" }, correct: ["a"] }
+            ]
+        },
+        c: {
+            name: "english",
+            title: "Genuis!",
+            quiz: [
+                { q: "Which comparison uses 'like' or 'as'?", options: { a: "Metaphor", b: "Hyperbole", c: "Personification", d: "Simile" }, correct: ["d"] },
+                { q: "What does the 'E' in the acronym 'CER' stand for?", options: { a: "Examples", b: "Evidence", c: "Explanation", d: "Extol" }, correct: ["b"] },
+                { q: "What is a hook in an essay?", options: { a: "An introduction", b: "Something you use to catch fish", c: "A tool to hold objects", d: "The closing of an essay" }, correct: ["a"] },
+                { q: "What is a hyperbole?", options: { a: "A comparison between two unlike things", b: "A claim for an article", c: "An extreme exaggeration", d: "A human trait in an inanimate object" }, correct: ["c"] },
+                { q: "What is the correct MLA citation for a book?", options: { a: "(title pg#) ", b: "(pg# Title)", c: "(Title, pg#)", d: "(Title pg#)" }, correct: ["d"] },
+                { q: "What do you have to do before every new paragraph?", options: { a: "Indent", b: "Space", c: "Return", d: "Sacrifice a part of your soul. . . " }, correct: ["a", "d"] }
+            ]
+        },
+        d: {
+            name: "social studies",
+            title: "Genuis!",
+            quiz: [
+                { q: "What is the first amendment of the Bill of Rights?", options: { a: "You have the right to a public and speedy trial", b: "You have the right to remain silent", c: "The police need a warrant to search your stuff", d: "Freedom of speech, religion, assembly, and press" }, correct: ["d"] },
+                { q: "Which enlightenment person came up with the social contract?", options: { a: "Sir Francis Bacon", b: "Jean-Jacques Rosseau", c: "John Locke", d: "Voltaire" }, correct: ["b"] },
+                { q: "What form of government means the mob has the power?", options: { a: "Ochlocracy", b: "Monarchy", c: "Oligarchy", d: "Socialism" }, correct: ["a"] },
+                { q: "When did the US declare its independence?", options: { a: "December 25, 1762", b: "Febuary 14, 1786", c: "July 4, 1776", d: "January 17, 1753" }, correct: ["c"] },
+                { q: "Who created the encyclopedia?", options: { a: "Voltaire", b: "Walstonecraft", c: "Descartes", d: "Diderot" }, correct: ["d"] },
+                { q: "What is NOT a characteristic of a state?", options: { a: "Force", b: "Population", c: "Government", d: "Sovereignity" }, correct: ["a"] }
+            ]
+        }
+    };
+
+    function selectSubject(choice) {
+        const feedbackDiv = document.getElementById("feedback");
+        const scoreBox = document.getElementById("score-box");
+
+        if (datasets[choice]) {
+            subjectName = datasets[choice].name;
+            activeQuestions = datasets[choice].quiz;
+            geniusTitle = datasets[choice].title;
+
+            feedbackDiv.className = "feedback correct";
+            feedbackDiv.innerText = `You have chosen ${subjectName}!`;
+            feedbackDiv.style.display = "block";
+            scoreBox.style.display = "block";
+
+            setTimeout(loadNextQuestion, 1200);
+        } else {
+            feedbackDiv.className = "feedback incorrect";
+            feedbackDiv.innerText = "This is not a valid answer.";
+            feedbackDiv.style.display = "block";
+        }
+    }
+
+    function loadNextQuestion() {
+        const feedbackDiv = document.getElementById("feedback");
+        const questionText = document.getElementById("question");
+        const optionsContainer = document.getElementById("options");
+
+        feedbackDiv.style.display = "none";
+
+        if (currentQuestionIndex < activeQuestions.length) {
+            const currentQuestion = activeQuestions[currentQuestionIndex];
+            questionText.innerHTML = currentQuestion.q;
+            optionsContainer.innerHTML = "";
+
+            for (const [key, value] of Object.entries(currentQuestion.options)) {
+                const button = document.createElement("button");
+                button.className = "btn";
+                button.innerText = `${key}. ${value}`;
+                button.onclick = () => evaluateAnswer(key);
+                optionsContainer.appendChild(button);
+            }
+        } else {
+            showFinalResults();
+        }
+    }
+
+    function evaluateAnswer(selectedOption) {
+        const feedbackDiv = document.getElementById("feedback");
+        const scoreSpan = document.getElementById("score");
+        const currentQuestion = activeQuestions[currentQuestionIndex];
+
+        if (currentQuestion.correct.includes(selectedOption)) {
+            score++;
+            scoreSpan.innerText = score;
+            feedbackDiv.className = "feedback correct";
+            feedbackDiv.innerText = `Correct! Score: ${score}`;
+        } else {
+            feedbackDiv.className = "feedback incorrect";
+            feedbackDiv.innerText = `I'm sorry but that is incorrect. Score: ${score}`;
+        }
+        feedbackDiv.style.display = "block";
+
+        currentQuestionIndex++;
+        setTimeout(loadNextQuestion, 1500);
+    }
+
+    function showFinalResults() {
+        const quizBody = document.getElementById("quiz-body");
+        const feedbackDiv = document.getElementById("feedback");
+        const scoreBox = document.getElementById("score-box");
+
+        feedbackDiv.style.display = "none";
+        scoreBox.style.display = "none";
+
+        let endingMessage = "";
+        if (score >= -1 && score <= 1) {
+            endingMessage = `You're getting there . . . Final Score: ${score}`;
+        } else if (score >= 2 && score <= 3) {
+            endingMessage = `Average highschooler. Final Score: ${score}`;
+        } else if (score >= 4 && score <= 6) {
+            endingMessage = `${geniusTitle} Final Score: ${score}`;
+        }
+
+        quizBody.innerHTML = `
+            <p class="question-text">Quiz Complete!</p>
+            <div class="feedback correct" style="display:block; font-size: 16px;">${endingMessage}</div>
+            <button class="btn" style="margin-top:20px; text-align:center;" onclick="window.location.reload()">Restart Quiz</button>
+        `;
+    }
+</script>
+
+</body>
+</html>
